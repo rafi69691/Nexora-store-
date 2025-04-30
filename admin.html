@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Nexora</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+    .login, .panel { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    input, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc; }
+    button { background: #007bff; color: #fff; cursor: pointer; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    #panel { display: none; }
+  </style>
+</head>
+<body>
+  <div id="login" class="login">
+    <h2>Admin Login</h2>
+    <input type="email" id="adminEmail" placeholder="Email" />
+    <input type="password" id="adminPassword" placeholder="Password" />
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="panel" class="panel">
+    <h2>Welcome, Admin</h2>
+    <p>Total Products: <span id="productCount">0</span></p>
+    <p>Total Orders: <span id="orderCount">1</span></p>
+    <p>Total Revenue: $<span id="revenueCount">159.95</span></p>
+    <h3>Product List</h3>
+    <table>
+      <thead><tr><th>Name</th><th>Price</th><th>Category</th></tr></thead>
+      <tbody id="productTable">
+        <tr><td>Smartwatch</td><td>$49.99</td><td>electronics</td></tr>
+        <tr><td>iPhone Case</td><td>$9.99</td><td>fashion</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const ADMIN_EMAIL = "admin@nexora.com";
+    const ADMIN_PASS = "123456";
+    function login() {
+      const email = document.getElementById("adminEmail").value;
+      const pass = document.getElementById("adminPassword").value;
+      if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("panel").style.display = "block";
+        document.getElementById("productCount").innerText = document.querySelectorAll("#productTable tr").length;
+      } else {
+        alert("Invalid credentials!");
+      }
+    }
+  </script>
+</body>
+</html>
