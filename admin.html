@@ -4,78 +4,264 @@
   <meta charset="UTF-8" />
   <title>Nexora Admin - Pro System</title>
   <style>
-    body { font-family: Arial; background: #f0f0f0; padding: 20px; }
-    .container { background: #fff; padding: 20px; max-width: 1000px; margin: auto; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, select, button { padding: 10px; margin: 5px 0; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
-    button { background: #007bff; color: white; border: none; cursor: pointer; transition: background 0.3s ease; }
+    body { font-family: Arial; background: #f0f0f0; padding: 20px; margin: 0; }
+    .container { 
+      background: #fff; 
+      padding: 20px; 
+      max-width: 1000px; 
+      margin: auto; 
+      border-radius: 10px; 
+      box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+      display: none; /* Hidden by default until logged in */
+    }
+    input, select, button { 
+      padding: 10px; 
+      margin: 5px 0; 
+      width: 100%; 
+      border: 1px solid #ccc; 
+      border-radius: 5px; 
+      box-sizing: border-box; 
+    }
+    button { 
+      background: #007bff; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      transition: background 0.3s ease; 
+    }
     button:hover { background: #0056b3; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    .action { display: flex; gap: 5px; }
-    .delete { background: #dc3545; }
-    .delete:hover { background: #b02a37; }
-    .edit { background: #28a745; }
-    .edit:hover { background: #218838; }
-    .status-btn { background: #ff9800; }
-    .status-btn:hover { background: #e68900; }
-    select { background: #fff; color: #333; }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 20px; 
+    }
+    th, td { 
+      border: 1px solid #ccc; 
+      padding: 8px; 
+      text-align: left; 
+    }
+    .action { 
+      display: flex; 
+      gap: 5px; 
+    }
+    .delete { 
+      background: #dc3545; 
+    }
+    .delete:hover { 
+      background: #b02a37; 
+    }
+    .edit { 
+      background: #28a745; 
+    }
+    .edit:hover { 
+      background: #218838; 
+    }
+    .status-btn { 
+      background: #ff9800; 
+    }
+    .status-btn:hover { 
+      background: #e68900; 
+    }
+    select { 
+      background: #fff; 
+      color: #333; 
+    }
+    /* Login Modal Styling */
+    .modal { 
+      display: flex; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0,0,0,0.7); 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 1000; 
+    }
+    .modal-content { 
+      background: linear-gradient(135deg, #1e3c72, #2a5298); 
+      color: white; 
+      padding: 2rem; 
+      border-radius: 15px; 
+      max-width: 400px; 
+      width: 90%; 
+      text-align: center; 
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3); 
+      animation: loginFadeIn 0.5s ease; 
+    }
+    @keyframes loginFadeIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-content h2 {
+      background: linear-gradient(90deg, #00bfff, #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: textGlow 2s infinite alternate;
+    }
+    @keyframes textGlow {
+      0% { text-shadow: 0 0 5px rgba(0,191,255,0.5); }
+      100% { text-shadow: 0 0 15px rgba(0,191,255,1); }
+    }
+    .modal-content input {
+      padding: 0.75rem;
+      border: none;
+      border-radius: 25px;
+      margin: 0.5rem 0;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    .modal-content input::placeholder { 
+      color: rgba(255,255,255,0.7); 
+    }
+    .modal-content input:focus {
+      outline: none;
+      background: rgba(255,255,255,0.2);
+      box-shadow: 0 0 10px rgba(0,191,255,0.5);
+      transform: scale(1.02);
+    }
+    .modal-content button {
+      padding: 0.75rem 1.5rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 25px;
+      background: linear-gradient(90deg, #00bfff, #0099cc);
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .modal-content button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,191,255,0.4);
+      background: linear-gradient(90deg, #0099cc, #00bfff);
+    }
+    .modal-content button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 5px rgba(0,191,255,0.2);
+    }
+    .logout-btn { 
+      background: #dc3545; 
+      margin-top: 20px; 
+    }
+    .logout-btn:hover { 
+      background: #b02a37; 
+    }
   </style>
 </head>
 <body>
-<div class="container">
-  <h2>Admin Panel - Nexora Pro</h2>
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <h2>Admin Login</h2>
+      <form id="loginForm">
+        <input type="password" id="adminPassword" placeholder="Enter Password" required />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  </div>
 
-  <!-- Product Management -->
-  <h3>Add/Edit Product</h3>
-  <form id="productForm">
-    <input type="hidden" id="editIndex" />
-    <input type="text" id="name" placeholder="Product Name" required />
-    <input type="number" id="price" placeholder="Price (USD)" required />
-    <input type="text" id="category" placeholder="Category" required />
-    <input type="url" id="image" placeholder="Image URL" required />
-    <button type="submit">Save Product</button>
-  </form>
+  <!-- Admin Panel Content -->
+  <div class="container" id="adminContent">
+    <h2>Admin Panel - Nexora Pro</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
 
-  <h3>Product List</h3>
-  <table>
-    <thead><tr><th>Name</th><th>USD</th><th>BDT</th><th>Category</th><th>Actions</th></tr></thead>
-    <tbody id="productTable"></tbody>
-  </table>
+    <!-- Product Management -->
+    <h3>Add/Edit Product</h3>
+    <form id="productForm">
+      <input type="hidden" id="editIndex" />
+      <input type="text" id="name" placeholder="Product Name" required />
+      <input type="number" id="price" placeholder="Price (USD)" required />
+      <input type="text" id="category" placeholder="Category" required />
+      <input type="url" id="image" placeholder="Image URL" required />
+      <button type="submit">Save Product</button>
+    </form>
 
-  <!-- Manual Order Placement -->
-  <h3>Manual Order (with Email)</h3>
-  <form id="orderForm">
-    <input type="text" id="cname" placeholder="Customer Name" required />
-    <input type="email" id="cemail" placeholder="Customer Email" required />
-    <input type="text" id="corder" placeholder="Product Name" required />
-    <input type="number" id="camount" placeholder="Amount (USD)" required />
-    <button type="submit">Place Order</button>
-  </form>
+    <h3>Product List</h3>
+    <table>
+      <thead><tr><th>Name</th><th>USD</th><th>BDT</th><th>Category</th><th>Actions</th></tr></thead>
+      <tbody id="productTable"></tbody>
+    </table>
 
-  <!-- Order List -->
-  <h3>All Orders</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Order ID</th>
-        <th>Customer</th>
-        <th>Product</th>
-        <th>Amount</th>
-        <th>Status</th>
-        <th>Payment Method</th>
-        <th>Payment Status</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="orderTable"></tbody>
-  </table>
+    <!-- Manual Order Placement -->
+    <h3>Manual Order (with Email)</h3>
+    <form id="orderForm">
+      <input type="text" id="cname" placeholder="Customer Name" required />
+      <input type="email" id="cemail" placeholder="Customer Email" required />
+      <input type="text" id="corder" placeholder="Product Name" required />
+      <input type="number" id="camount" placeholder="Amount (USD)" required />
+      <button type="submit">Place Order</button>
+    </form>
 
-</div>
+    <!-- Order List -->
+    <h3>All Orders</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Product</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Payment Method</th>
+          <th>Payment Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="orderTable"></tbody>
+    </table>
+  </div>
 
 <script>
+const ADMIN_PASSWORD = "rafin123"; // Fixed password for admin
 const conversionRate = 110;
 let products = JSON.parse(localStorage.getItem("products")) || [];
 let orders = JSON.parse(localStorage.getItem("orders")) || [];
+let isLoggedIn = JSON.parse(localStorage.getItem("isLoggedIn")) || false;
+
+// Check login status on page load
+window.onload = function() {
+  if (isLoggedIn) {
+    showAdminContent();
+  } else {
+    document.getElementById("loginModal").style.display = "flex";
+  }
+};
+
+// Handle login
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const password = document.getElementById("adminPassword").value;
+  if (password === ADMIN_PASSWORD) {
+    isLoggedIn = true;
+    localStorage.setItem("isLoggedIn", JSON.stringify(isLoggedIn));
+    showAdminContent();
+  } else {
+    alert("Incorrect password! Please try again.");
+    document.getElementById("adminPassword").value = "";
+  }
+});
+
+// Show admin content after login
+function showAdminContent() {
+  document.getElementById("loginModal").style.display = "none";
+  document.getElementById("adminContent").style.display = "block";
+  renderProducts();
+  renderOrders();
+}
+
+// Logout function
+function logout() {
+  isLoggedIn = false;
+  localStorage.setItem("isLoggedIn", JSON.stringify(isLoggedIn));
+  document.getElementById("adminContent").style.display = "none";
+  document.getElementById("loginModal").style.display = "flex";
+  document.getElementById("adminPassword").value = "";
+  alert("Logged out successfully!");
+}
 
 // Product render
 function renderProducts() {
@@ -184,9 +370,7 @@ function saveData() {
   renderProducts();
   renderOrders();
 }
-
-renderProducts();
-renderOrders();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'938416072f214594',t:'MTc0NTk4NTE0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'938416072f214594',t:'MTc0NTk4NTE0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
 </html>
