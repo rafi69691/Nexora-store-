@@ -1,56 +1,192 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel - Nexora</title>
+  <meta charset="UTF-8" />
+  <title>Nexora Admin - Pro System</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
-    .login, .panel { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    input, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc; }
-    button { background: #007bff; color: #fff; cursor: pointer; }
-    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    body { font-family: Arial; background: #f0f0f0; padding: 20px; }
+    .container { background: #fff; padding: 20px; max-width: 1000px; margin: auto; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    input, select, button { padding: 10px; margin: 5px 0; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #007bff; color: white; border: none; cursor: pointer; transition: background 0.3s ease; }
+    button:hover { background: #0056b3; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    #panel { display: none; }
+    .action { display: flex; gap: 5px; }
+    .delete { background: #dc3545; }
+    .delete:hover { background: #b02a37; }
+    .edit { background: #28a745; }
+    .edit:hover { background: #218838; }
+    .status-btn { background: #ff9800; }
+    .status-btn:hover { background: #e68900; }
+    select { background: #fff; color: #333; }
   </style>
 </head>
 <body>
-  <div id="login" class="login">
-    <h2>Admin Login</h2>
-    <input type="email" id="adminEmail" placeholder="Email" />
-    <input type="password" id="adminPassword" placeholder="Password" />
-    <button onclick="login()">Login</button>
-  </div>
+<div class="container">
+  <h2>Admin Panel - Nexora Pro</h2>
 
-  <div id="panel" class="panel">
-    <h2>Welcome, Admin</h2>
-    <p>Total Products: <span id="productCount">0</span></p>
-    <p>Total Orders: <span id="orderCount">1</span></p>
-    <p>Total Revenue: $<span id="revenueCount">159.95</span></p>
-    <h3>Product List</h3>
-    <table>
-      <thead><tr><th>Name</th><th>Price</th><th>Category</th></tr></thead>
-      <tbody id="productTable">
-        <tr><td>Smartwatch</td><td>$49.99</td><td>electronics</td></tr>
-        <tr><td>iPhone Case</td><td>$9.99</td><td>fashion</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- Product Management -->
+  <h3>Add/Edit Product</h3>
+  <form id="productForm">
+    <input type="hidden" id="editIndex" />
+    <input type="text" id="name" placeholder="Product Name" required />
+    <input type="number" id="price" placeholder="Price (USD)" required />
+    <input type="text" id="category" placeholder="Category" required />
+    <input type="url" id="image" placeholder="Image URL" required />
+    <button type="submit">Save Product</button>
+  </form>
 
-  <script>
-    const ADMIN_EMAIL = "admin@nexora.com";
-    const ADMIN_PASS = "123456";
-    function login() {
-      const email = document.getElementById("adminEmail").value;
-      const pass = document.getElementById("adminPassword").value;
-      if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
-        document.getElementById("login").style.display = "none";
-        document.getElementById("panel").style.display = "block";
-        document.getElementById("productCount").innerText = document.querySelectorAll("#productTable tr").length;
-      } else {
-        alert("Invalid credentials!");
-      }
-    }
-  </script>
-</body>
+  <h3>Product List</h3>
+  <table>
+    <thead><tr><th>Name</th><th>USD</th><th>BDT</th><th>Category</th><th>Actions</th></tr></thead>
+    <tbody id="productTable"></tbody>
+  </table>
+
+  <!-- Manual Order Placement -->
+  <h3>Manual Order (with Email)</h3>
+  <form id="orderForm">
+    <input type="text" id="cname" placeholder="Customer Name" required />
+    <input type="email" id="cemail" placeholder="Customer Email" required />
+    <input type="text" id="corder" placeholder="Product Name" required />
+    <input type="number" id="camount" placeholder="Amount (USD)" required />
+    <button type="submit">Place Order</button>
+  </form>
+
+  <!-- Order List -->
+  <h3>All Orders</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Customer</th>
+        <th>Product</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Payment Method</th>
+        <th>Payment Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="orderTable"></tbody>
+  </table>
+
+</div>
+
+<script>
+const conversionRate = 110;
+let products = JSON.parse(localStorage.getItem("products")) || [];
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+// Product render
+function renderProducts() {
+  const table = document.getElementById("productTable");
+  table.innerHTML = "";
+  products.forEach((p, i) => {
+    const bdt = Math.round(p.price * conversionRate);
+    table.innerHTML += `<tr>
+      <td>${p.name}</td><td>$${p.price}</td><td>৳${bdt}</td><td>${p.category}</td>
+      <td class="action">
+        <button class="edit" onclick="editProduct(${i})">Edit</button>
+        <button class="delete" onclick="deleteProduct(${i})">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+
+// Product actions
+function deleteProduct(i) {
+  if (confirm("Delete this product?")) {
+    products.splice(i, 1);
+    saveData();
+  }
+}
+
+function editProduct(i) {
+  const p = products[i];
+  document.getElementById("editIndex").value = i;
+  document.getElementById("name").value = p.name;
+  document.getElementById("price").value = p.price;
+  document.getElementById("category").value = p.category;
+  document.getElementById("image").value = p.image;
+}
+
+// Save product
+document.getElementById("productForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const product = {
+    name: name.value,
+    price: parseFloat(price.value),
+    category: category.value,
+    image: image.value
+  };
+  const index = editIndex.value;
+  if (index === "") products.push(product);
+  else products[parseInt(index)] = product;
+  saveData();
+  this.reset();
+});
+
+// Orders render
+function renderOrders() {
+  const ot = document.getElementById("orderTable");
+  ot.innerHTML = "";
+  orders.forEach((o, i) => {
+    ot.innerHTML += `<tr>
+      <td>${o.id}</td>
+      <td>${o.name}</td>
+      <td>${o.product}</td>
+      <td>$${o.amount}</td>
+      <td>${o.status}</td>
+      <td>${o.paymentMethod || "bKash"}</td>
+      <td>${o.paymentStatus || "Pending"}</td>
+      <td class="action">
+        <button class="status-btn" onclick="updatePaymentStatus(${i})">Update Payment Status</button>
+      </td>
+    </tr>`;
+  });
+}
+
+// Update Payment Status
+function updatePaymentStatus(index) {
+  const newStatus = prompt("Enter new payment status (Pending, Paid, Failed):", orders[index].paymentStatus || "Pending");
+  if (newStatus && ["Pending", "Paid", "Failed"].includes(newStatus)) {
+    orders[index].paymentStatus = newStatus;
+    saveData();
+    alert(`Payment status updated to ${newStatus} for Order ID: ${orders[index].id}`);
+  } else {
+    alert("Invalid status! Please use Pending, Paid, or Failed.");
+  }
+}
+
+// Place Order (Manual)
+document.getElementById("orderForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const id = "ORD" + Date.now();
+  const newOrder = {
+    id: id,
+    name: cname.value,
+    email: cemail.value,
+    product: corder.value,
+    amount: camount.value,
+    status: "Pending",
+    paymentMethod: "bKash",
+    paymentStatus: "Pending"
+  };
+  orders.push(newOrder);
+  alert("Order placed with ID: " + id);
+  saveData();
+  this.reset();
+});
+
+function saveData() {
+  localStorage.setItem("products", JSON.stringify(products));
+  localStorage.setItem("orders", JSON.stringify(orders));
+  renderProducts();
+  renderOrders();
+}
+
+renderProducts();
+renderOrders();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'938416072f214594',t:'MTc0NTk4NTE0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
